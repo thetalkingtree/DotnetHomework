@@ -88,10 +88,7 @@ namespace DotnetHomework.Api.Repository
 
             // Detach the existing entity
             _context.Entry(existingEntity).State = EntityState.Detached;
-
-            // Attach the new entity and mark it as modified
-            //_context.Entry(entity).State = EntityState.Modified;
-              _dbSet.Update(entity);
+            _dbSet.Update(entity);
             // Save the changes to the database
             await _context.SaveChangesAsync();
         }
