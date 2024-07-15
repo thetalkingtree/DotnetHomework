@@ -77,16 +77,23 @@ namespace DotnetHomework.Api.Repository
         /// <returns>A task representing the asynchronous operation.</returns>
         public async Task UpdateAsync(Document entity)
         {
-            if (await _dbSet.FindAsync(entity.Id) == null)
+            // Find the existing entity in the context
+            var existingEntity = await _dbSet.FindAsync(entity.Id);
+
+            // If the entity does not exist in the context, throw an exception
+            if (existingEntity == null)
             {
                 throw new KeyNotFoundException(string.Format("Entity not found {0} {1}", entity.GetType().FullName, entity.Id));
             }
 
-            else
-            {
-                _dbSet.Update(entity);
-                await _context.SaveChangesAsync();
-            }
+            // Detach the existing entity
+            _context.Entry(existingEntity).State = EntityState.Detached;
+
+            // Attach the new entity and mark it as modified
+            //_context.Entry(entity).State = EntityState.Modified;
+              _dbSet.Update(entity);
+            // Save the changes to the database
+            await _context.SaveChangesAsync();
         }
 
         /// <summary>
