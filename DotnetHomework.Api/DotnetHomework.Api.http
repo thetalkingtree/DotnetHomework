@@ -1,6 +1,6 @@
 @DotnetHomework.Api_HostAddress = http://localhost:5047
 
-GET {{DotnetHomework.Api_HostAddress}}/weatherforecast/
+GET {{DotnetHomework.Api_HostAddress}}/http://localhost:5047/api/documents/list/
 Accept: application/json
 
 ###
