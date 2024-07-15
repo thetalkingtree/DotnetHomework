@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DotnetHomework.Api.Repository;
 using DotnetHomework.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotnetHomework.Api.Controllers
 {
@@ -13,10 +11,12 @@ namespace DotnetHomework.Api.Controllers
     public class DocumentsController : ControllerBase
     {
         private readonly IDocumentRepository<Document> repo;
+        private readonly ILogger<DocumentsController> logger;
 
-        public DocumentsController(IDocumentRepository<Document> repo)
+        public DocumentsController(IDocumentRepository<Document> repo, ILogger<DocumentsController> logger)
         {
             this.repo = repo;
+            this.logger = logger;
         }
 
         // GET: api/Documents/list
@@ -28,6 +28,7 @@ namespace DotnetHomework.Api.Controllers
         [Route("list")]
         public async Task<List<DocumentDTO>> GetDocumentsList()
         {
+            logger.LogInformation("Fetching document list.");
             var records = await repo.GetAllAsync();
             var retVal = new List<DocumentDTO>();
 
@@ -47,6 +48,7 @@ namespace DotnetHomework.Api.Controllers
                 });
             });
 
+            logger.LogInformation($"Fetched {retVal.Count} documents.");
             return retVal;
         }
 
@@ -59,9 +61,11 @@ namespace DotnetHomework.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<DocumentDTO>> GetDocument(int id)
         {
+            logger.LogInformation($"Fetching document with ID {id}.");
             var document = await repo.GetByIdAsync(id);
             if (document == null)
             {
+                logger.LogWarning($"Document with ID {id} not found.");
                 return NotFound();
             }
 
@@ -78,6 +82,7 @@ namespace DotnetHomework.Api.Controllers
                 }
             };
 
+            logger.LogInformation($"Fetched document with ID {id}.");
             return retVal;
         }
 
@@ -91,6 +96,7 @@ namespace DotnetHomework.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDocument([FromForm] DocumentDTO document)
         {
+            logger.LogInformation($"Updating document with ID {document.Id}.");
             //In a repetitive scenario I would use automapper, but for this purpose it's good enough            
             try
             {
@@ -111,21 +117,26 @@ namespace DotnetHomework.Api.Controllers
             }
             catch (KeyNotFoundException)
             {
+                logger.LogWarning($"Document with ID {document.Id} not found.");
                 return NotFound();
             }
             catch (DbUpdateConcurrencyException)
             {
+                logger.LogWarning($"Concurrency issue when updating document with ID {document.Id}.");
                 return BadRequest();
             }
             catch (NullReferenceException ex)
             {
+                logger.LogError(ex, $"Null reference exception when updating document with ID {document.Id}.");
                 return StatusCode(500, ex.Message);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, $"Exception when updating document with ID {document.Id}.");
                 return StatusCode(500, ex.Message);
             }
 
+            logger.LogInformation($"Successfully updated document with ID {document.Id}.");
             return NoContent();
         }
 
@@ -138,6 +149,7 @@ namespace DotnetHomework.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<DocumentDTO>> PostDocument([FromBody] DocumentDTO document)
         {
+            logger.LogInformation($"Creating new document with ID {document.Id}.");
             //In a repetitive scenario I would use automapper, but for this purpose it's good enough            
             try
             {
@@ -155,15 +167,19 @@ namespace DotnetHomework.Api.Controllers
                 };
                 await repo.AddAsync(doc);
             }
+
             catch (NullReferenceException ex)
             {
+                logger.LogError(ex, "Null reference exception when creating document.");
                 return StatusCode(500, ex.Message);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Exception when creating document.");
                 return StatusCode(500, ex.Message);
             }
 
+            logger.LogInformation($"Successfully created document with ID {document.Id}.");
             return CreatedAtAction("PostDocument", new { id = document.Id }, document);
         }
 
@@ -176,13 +192,16 @@ namespace DotnetHomework.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDocument(int id)
         {
+            logger.LogInformation($"Deleting document with ID {id}.");
             try
             {
                 await repo.DeleteAsync(id);
+                logger.LogInformation($"Successfully deleted document with ID {id}.");
                 return NoContent();
             }
             catch (KeyNotFoundException)
             {
+                logger.LogWarning($"Document with ID {id} not found.");
                 return NotFound();
             }
         }

@@ -2,19 +2,26 @@ using DotnetHomework.Api.Controllers;
 using DotnetHomework.Api.Repository;
 using DotnetHomework.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace YourProject.Tests
 {
     public class DocumentsControllerTests
     {
         private readonly Mock<IDocumentRepository<Document>> mockRepo;
+        private readonly Mock<ILogger<DocumentsController>> mockLogger;
         private readonly DocumentsController controller;
 
         public DocumentsControllerTests()
         {
             mockRepo = new Mock<IDocumentRepository<Document>>();
-            controller = new DocumentsController(mockRepo.Object);
+            mockLogger = new Mock<ILogger<DocumentsController>>();
+            controller = new DocumentsController(mockRepo.Object, mockLogger.Object);
         }
 
         [Fact]
@@ -22,7 +29,7 @@ namespace YourProject.Tests
         {
             // Arrange
             mockRepo.Setup(repo => repo.GetAllAsync()).ReturnsAsync(GetTestDocuments());
-
+            
             // Act
             var result = await controller.GetDocumentsList();
 
@@ -75,7 +82,7 @@ namespace YourProject.Tests
                     Extension = ".txt",
                     FileName = "TestFile",
                     MimeType = "text/plain",
-                    DocumentData = "Sample document content as text"
+                    DocumentData = "Sample text document content"
                 }
             };
 
@@ -100,7 +107,7 @@ namespace YourProject.Tests
                     Extension = ".txt",
                     FileName = "TestFile",
                     MimeType = "text/plain",
-                    DocumentData = "Sample document content as text"
+                    DocumentData = "Sample text document content"
                 }
             };
 
@@ -124,7 +131,7 @@ namespace YourProject.Tests
                     Extension = ".txt",
                     FileName = "TestFile",
                     MimeType = "text/plain",
-                    DocumentData = "Sample document content as text"
+                    DocumentData = "Sample text document content"
                 }
             };
 
@@ -173,13 +180,13 @@ namespace YourProject.Tests
                 {
                     Id = 1,
                     DocumentTags = new List<DocumentTag> { new DocumentTag { Tag = new Tag { Name = "TestTag1" } } },
-                    Data = new DocumentData { Extension = ".txt", FileName = "TestFile1", MimeType = "text/plain", FileData = "Sample document content as text" }
+                    Data = new DocumentData { Extension = ".txt", FileName = "TestFile1", MimeType = "text/plain", FileData = "Sample text document content" }
                 },
                 new Document
                 {
                     Id = 2,
                     DocumentTags = new List<DocumentTag> { new DocumentTag { Tag = new Tag { Name = "TestTag2" } } },
-                    Data = new DocumentData { Extension = ".pdf", FileName = "TestFile2", MimeType = "application/pdf", FileData = "Sample document content as text" }
+                    Data = new DocumentData { Extension = ".pdf", FileName = "TestFile2", MimeType = "application/pdf", FileData = "Sample text document content" }
                 }
             };
         }
@@ -190,7 +197,7 @@ namespace YourProject.Tests
             {
                 Id = id,
                 DocumentTags = new List<DocumentTag> { new DocumentTag { Tag = new Tag { Name = "TestTag" } } },
-                Data = new DocumentData { Extension = ".txt", FileName = "TestFile", MimeType = "text/plain", FileData = "Sample document content as text" }
+                Data = new DocumentData { Extension = ".txt", FileName = "TestFile", MimeType = "text/plain", FileData = "Sample text document content" }
             };
         }
     }
