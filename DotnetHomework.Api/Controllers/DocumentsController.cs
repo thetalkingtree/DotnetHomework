@@ -93,7 +93,7 @@ namespace DotnetHomework.Api.Controllers
         /// <param name="id">Document ID</param>
         /// <param name="document">DocumentDTO</param>
         /// <returns>No content</returns>
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutDocument([FromForm] DocumentDTO document)
         {
             logger.LogInformation($"Updating document with ID {document.Id}.");
