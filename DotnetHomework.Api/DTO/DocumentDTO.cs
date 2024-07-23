@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DotnetHomework.Api.Validators;
 
 namespace DotnetHomework.Models
 {
@@ -18,6 +19,7 @@ namespace DotnetHomework.Models
         /// Gets or sets the tags associated with the document. This field is required.
         /// </summary>
         [Required(ErrorMessage = "Document tag/tags required")]
+        [MaxTagLength(15)]
         public required List<string> Tags { get; set; }
 
         /// <summary>

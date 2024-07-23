@@ -13,9 +13,8 @@ namespace DotnetHomework.Models
         public int Id { get; set; } // Primary Key (auto-generated)
 
         /// <summary>
-        /// Gets or sets the name of the tag. This field is required.
+        /// Gets or sets the name of the tag.
         /// </summary>
-        [Required]
         public string Name { get; set; } // Tag name from JSON
 
         /// <summary>
