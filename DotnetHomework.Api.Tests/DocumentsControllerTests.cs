@@ -36,8 +36,7 @@ namespace DotnetHomework.Api.Tests
 
             // Assert
             var viewResult = Assert.IsType<List<DocumentDTO>>(result);
-            var model = Assert.IsAssignableFrom<IEnumerable<DocumentDTO>>(viewResult);
-            Assert.Equal(2, model.Count());
+            Assert.Equal(2, viewResult.Count());
         }
 
         [Fact]
@@ -51,8 +50,12 @@ namespace DotnetHomework.Api.Tests
             var result = await controller.GetDocument(testId);
 
             // Assert
+            //Return value type check
             var actionResult = Assert.IsType<ActionResult<DocumentDTO>>(result);
+
+            //Return value object extraction
             var returnValue = Assert.IsType<DocumentDTO>(actionResult.Value);
+            //Check if id query returned the expected id
             Assert.Equal(testId, returnValue.Id);
         }
 
@@ -180,6 +183,32 @@ namespace DotnetHomework.Api.Tests
             var responseMessage = badRequestResult.Value as string;
             Assert.Equal(dbUpdateException.InnerException.Message, responseMessage);
 
+        }
+
+        [Fact]
+        public async Task PostDocument_DocumentNotCreated()
+        {
+            //Arrange
+            var documentDTO = new DocumentDTO
+            {
+                Id = 1,
+                Tags = new List<string> { "tag12", "tag13" },
+                Data = new DataDTO
+                {
+                    Extension = ".txt",
+                    FileName = "TestFile",
+                    MimeType = "text/plain",
+                    DocumentData = "Sample text document content"
+                }
+            };
+
+            mockRepo.Setup(setup => setup.AddAsync(GetTestDocument(1))).ThrowsAsync(new DbUpdateException());
+            //Act
+            var retVal = await controller.PostDocument(documentDTO);
+
+            //Assert
+            //The return value from value is the returned DTO via the API
+            Assert.Null(retVal.Value);
         }
 
         [Fact]
