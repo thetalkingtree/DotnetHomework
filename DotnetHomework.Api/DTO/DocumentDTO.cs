@@ -13,6 +13,7 @@ namespace DotnetHomework.Models
         /// Gets or sets the unique identifier for the document. This field is required.
         /// </summary>
         [Required(ErrorMessage = "Unique identifier is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than {1}")]
         public int Id { get; set; }
 
         /// <summary>
