@@ -173,6 +173,12 @@ namespace DotnetHomework.Api.Controllers
                 logger.LogError(ex, "Null reference exception when creating document.");
                 return StatusCode(500, ex.Message);
             }
+
+            catch (DbUpdateException ex)
+            {
+                logger.LogError(ex, "Error updating the document");
+                return BadRequest(ex.InnerException.Message);
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Exception when creating document.");

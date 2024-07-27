@@ -1,7 +1,11 @@
+using System.Net.WebSockets;
+using System.Security.Policy;
 using DotnetHomework.Api.Controllers;
 using DotnetHomework.Api.Repository;
 using DotnetHomework.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -26,7 +30,7 @@ namespace DotnetHomework.Api.Tests
         {
             // Arrange
             mockRepo.Setup(repo => repo.GetAllAsync()).ReturnsAsync(GetTestDocuments());
-            
+
             // Act
             var result = await controller.GetDocumentsList();
 
@@ -143,6 +147,70 @@ namespace DotnetHomework.Api.Tests
         }
 
         [Fact]
+        public async Task PostDocument_ReturnsUpdateException()
+        {
+            //Arrange
+            var documentDTO = new DocumentDTO
+            {
+                Id = 2,
+                Tags = new List<string> { "tag2update" },
+                Data = new DataDTO
+                {
+                    Extension = ".txt",
+                    FileName = "TestFile",
+                    MimeType = "text/plain",
+                    DocumentData = "Sample text document content"
+                }
+            };
+
+            var dbUpdateException = new DbUpdateException("Database update failed.", new Exception("Inner exception message."));
+            mockRepo.Setup(repo => repo.AddAsync(It.IsAny<Document>())).ThrowsAsync(dbUpdateException);
+
+            // Act
+            var result = await controller.PostDocument(documentDTO);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<DocumentDTO>>(result);
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+
+            // Verify the status code is 400 Bad Request
+            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+
+            // Verify the content of the BadRequest response
+            var responseMessage = badRequestResult.Value as string;
+            Assert.Equal(dbUpdateException.InnerException.Message, responseMessage);
+
+        }
+
+        [Fact]
+        public async Task PostDocument_ThrowsNullReferenceException()
+        {
+            //Arrange
+            var documentDTO = new DocumentDTO
+            {
+                Tags = null,
+                Data = new DataDTO
+                {
+                    Extension = ".txt",
+                    FileName = "TestFile",
+                    MimeType = "text/plain",
+                    DocumentData = "Sample text document content"
+                }
+            };
+            //Act
+            var post = await controller.PostDocument(documentDTO);
+
+            //Assert
+            var actionResult = Assert.IsType<ActionResult<DocumentDTO>>(post);
+            var http500result = Assert.IsType<ObjectResult>(actionResult.Result);
+
+            // Verify the status code is 500 Bad Request
+            Assert.Equal(StatusCodes.Status500InternalServerError, http500result.StatusCode);
+            //Verify the exception message 
+            Assert.Contains("Value cannot be null.", http500result.Value as string);
+        }
+
+        [Fact]
         public async Task DeleteDocument_ReturnsNoContent()
         {
             // Arrange
@@ -168,7 +236,6 @@ namespace DotnetHomework.Api.Tests
             // Assert
             Assert.IsType<NotFoundResult>(result);
         }
-
         private List<Document> GetTestDocuments()
         {
             return new List<Document>
